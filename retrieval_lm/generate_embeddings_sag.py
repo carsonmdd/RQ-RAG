@@ -23,8 +23,11 @@ def embed_passages(args, input_data, context_num):
     for ins_num, ins in tqdm(enumerate(input_data), total=len(input_data)):
         context_embeddings_for_cur_ins = []
 
-        for context in ins["contexts"]:
-            text = context["title"] + " " + context["paragraph_text"]
+        for context in ins["context"]:
+            title = context[0]
+            paragraph_text = " ".join(context[1])
+            text = title + " " + paragraph_text
+            # text = context["title"] + " " + context["paragraph_text"]
             text = text.lower()
             text = src.normalize_text.normalize(text)
             text_embedding = client.embeddings.create(input=[text], model="text-embedding-3-large").data[0].embedding
@@ -88,7 +91,7 @@ if __name__ == "__main__":
     elif args.input_file.endswith("json"):
         with open(args.input_file, "r", encoding="utf-8") as f:
             input_data = json.load(f)
-    print('\n', len(input_data), '\n', input_data[0], '\n')
+
     if args.task == "musique":
         context_num = 20
     else:
