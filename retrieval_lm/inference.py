@@ -80,9 +80,12 @@ def preprocess_input_data(dataset, task=None):
             item["answers"] = [item["answerKey"]]
 
         if task in ["2wikimultihopqa", "hotpotqa", "musique"]:
-            item["answers"] = []
-            for obj in item["answers_objects"]:
-                item["answers"].extend(obj["spans"])
+            if "answer" in item:
+                item["answers"] = [item["answer"]]
+            elif "answers_objects" in item:
+                item["answers"] = []
+                for obj in item["answers_objects"]:
+                    item["answers"].extend(obj["spans"])
         new_data.append(item)
 
     return new_data
@@ -122,7 +125,6 @@ async def process_query_list(search_engine_api, query_list):
 
 def generate_tree_of_thoughts(model, tokenizer, initial_prompts, raw_datas, special_tokens_dict, max_depth, max_width,
                               search_engine_api, search_limit, args, index, total_corpus):
-
     expand_on_tokens = args.expand_on_tokens
 
     paths = [{'prompt': prompt, 'depth': 0, 'text': '', 'done': False, "retrieved_index": []} for prompt in initial_prompts]
@@ -179,9 +181,12 @@ def generate_tree_of_thoughts(model, tokenizer, initial_prompts, raw_datas, spec
 
                 if args.task in ["2wikimultihopqa", "hotpotqa", "musique"]:
                     if args.search_engine_type == "openai_embed":
-                        evidences, top_indices = search_engine_api(query_for_search, corpus=raw_datas[0]["contexts"], index=index)
+                        evidences, top_indices = search_engine_api(query_for_search, corpus=raw_datas[0]["context"], index=index)
                     else:
-                        evidences, top_indices = search_engine_api(query_for_search, corpus=raw_datas[0]["contexts"])
+                        if args.search_engine_type == 'duckduckgo':
+                            evidences, top_indices = search_engine_api(query_for_search)
+                        else:
+                            evidences, top_indices = search_engine_api(query_for_search, corpus=raw_datas[0]["context"])
                     evidences_list = format_evidences([evidences])
 
                 else:
@@ -304,6 +309,7 @@ def main():
     input_data = preprocess_input_data(
         input_data, task=args.task)
     tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path, padding_side="left")
+    # print('\n', json.dumps(input_data[0], indent=4), '\n')
     # Remember to load from .pt, or it will automatically load from safe_tensor which cause error
 
     special_tokens_dict = load_sag_special_tokens(tokenizer)
@@ -314,7 +320,7 @@ def main():
             args.model_name_or_path,
             from_tf=bool(".ckpt" in args.model_name_or_path),
             device_map="auto",
-            torch_dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16,
+            dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16,
         )
 
         model.generation_config.eos_token_id = [tokenizer.convert_tokens_to_ids("</s>"),
@@ -352,6 +358,9 @@ def main():
                 total_corpus=total_corpus,
                 raw_datas=rows,)
 
+            # print('\n', 'PREDS:')
+            # print(preds, '\n')
+
         for row in rows:
             if "answers" not in row and "answer" in row:
                 row["answers"] = [row["answer"]] if type(
@@ -360,7 +369,7 @@ def main():
         if args.task in ["2wikimultihopqa", "hotpotqa", "musique"]:
             # get the overall retrieval performance EM and f1 of differenct path
             gold_support_idxs = []
-            for index, context in enumerate(rows[0]["contexts"]):
+            for index, context in enumerate(rows[0]["context"]):
                 if context["is_supporting"]:
                     gold_support_idxs.append(index)
             if args.search_engine_type != "elastic_search":
@@ -412,14 +421,14 @@ def main():
             with open(os.path.join(args.output_path, "tmp_results.json"), "w") as outfile:
                 json.dump(final_results, outfile)
 
-    final_results = {"all_preds": all_preds, "prompts": prompts, "metric_results": metric_results, "all_results": all_results,
-                     "golds": golds,  "metric":  args.metric, "metric_mean": np.mean(metric_results),
-                     }
-    with open(os.path.join(args.output_path, "final_results.json"), "w") as outfile:
-        json.dump(final_results, outfile)
+    # final_results = {"all_preds": all_preds, "prompts": prompts, "metric_results": metric_results, "all_results": all_results,
+    #                  "golds": golds,  "metric":  args.metric, "metric_mean": np.mean(metric_results),
+    #                  }
+    # with open(os.path.join(args.output_path, "final_results.json"), "w") as outfile:
+    #     json.dump(final_results, outfile)
 
-    print("Final result: {0}".format(np.mean(metric_results)))
-    print("Retrieval Frequencies: {0}".format(count / len(final_results["all_preds"])))
+    # print("Final result: {0}".format(np.mean(metric_results)))
+    # print("Retrieval Frequencies: {0}".format(count / len(final_results["all_preds"])))
 
 
 if __name__ == "__main__":

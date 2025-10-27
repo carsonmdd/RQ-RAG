@@ -39,7 +39,7 @@ def init_model_and_tokenizer_and_tool(model_name_or_path:str):
         model_name_or_path,
         from_tf=bool(".ckpt" in model_name_or_path),
         device_map="auto",
-        torch_dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16,
+        dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16,
     )
 
     # this line is important for us to control when do we stop

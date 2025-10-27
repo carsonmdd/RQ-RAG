@@ -10,13 +10,16 @@ import torch
 import transformers
 from openai import OpenAI
 from tqdm import tqdm
+from dotenv import load_dotenv
+import json
+
+load_dotenv()
 
 client = OpenAI()
 
 def embed_passages(args, input_data, context_num):
 
     all_embeddings = []
-
     for ins_num, ins in tqdm(enumerate(input_data), total=len(input_data)):
         context_embeddings_for_cur_ins = []
 
@@ -82,7 +85,10 @@ if __name__ == "__main__":
         with jsonlines.open(args.input_file) as f:
             for line in f:
                 input_data.append(line)
-
+    elif args.input_file.endswith("json"):
+        with open(args.input_file, "r", encoding="utf-8") as f:
+            input_data = json.load(f)
+    print('\n', len(input_data), '\n', input_data[0], '\n')
     if args.task == "musique":
         context_num = 20
     else:

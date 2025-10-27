@@ -270,7 +270,7 @@ if __name__ == '__main__':
 
     model = transformers.AutoModelForCausalLM.from_pretrained(args.model_name_or_path,
                                                    device_map="auto",
-                                                   torch_dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16,
+                                                   dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16,
                                                    )
 
     tokenizer = transformers.AutoTokenizer.from_pretrained(args.model_name_or_path)

@@ -5,19 +5,19 @@ export PYTHONPATH="$(pwd):$PYTHONPATH"
 
 python ./inference.py \
 --model_name_or_path \
-"your trained model" \
+"zorowin123/rq_rag_llama2_7B" \
 --input_file \
-"your data" \
+"/home/carson/research_projects/rq-rag/data/2wiki/dev_10.json" \
 --max_new_tokens \
 100 \
 --output_path \
-"your output_path" \
+"/home/carson/research_projects/rq-rag/output" \
 --ndocs \
 3 \
 --use_search_engine \
 --use_hf \
 --task \
-hotpotqa \
+2wikimultihopqa \
 --tree_decode \
 --oracle \
 --max_depth \

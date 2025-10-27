@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 import faiss
 from openai import OpenAI
 import torch
@@ -7,6 +8,7 @@ import sys
 sys.path.append("../..")
 import retrieval_lm.src.normalize_text as normalize_text
 
+load_dotenv()
 
 class OpenAIEmbedSearch:
     def __init__(self, ndocs, task, args, use_calculated_embeds=True, is_train=False):

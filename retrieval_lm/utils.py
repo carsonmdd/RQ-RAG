@@ -48,15 +48,14 @@ def preprocess_multi_turn_inference_data(user_query, previous_history, tokenizer
 
 
 def preprocess_eval_data(row, tokenizer, task):
-
     eval_examples = []
 
     for cur in row:
-        if task in ["popqa_longtail_w_gs", "popqa_longtail_w_gs_may_refers_to"]:
+        if task in ["popqa_longtail_w_gs", "popqa_longtail_w_gs_may_refers_to", "2wikimultihopqa"]:
             eval_example = f"<s><|system|>\n{system_prompt[task]}" + tokenizer.eos_token + "\n<|user|>\n" + cur["question"] + tokenizer.eos_token + "\n"
             eval_example += "<|assistant|>\n"
 
-        elif task in ["hotpotqa", "2wikimultihopqa", "musique"]:
+        elif task in ["hotpotqa", "musique"]:
             eval_example = f"<s><|system|>\n{system_prompt[task]}" + tokenizer.eos_token + "\n<|user|>\n" + cur["question_text"] + tokenizer.eos_token + "\n"
             eval_example += "<|assistant|>\n"
 
