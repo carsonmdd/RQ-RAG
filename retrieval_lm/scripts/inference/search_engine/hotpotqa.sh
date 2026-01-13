@@ -7,11 +7,11 @@ python ./inference.py \
 --model_name_or_path \
 "zorowin123/rq_rag_llama2_7B" \
 --input_file \
-"/home/carson/research_projects/rq-rag/data/2wiki/dev_10.json" \
+"/home/carson/research_projects/rq-rag/data/2wiki/dev_1.json" \
 --max_new_tokens \
 100 \
 --output_path \
-"/home/carson/research_projects/rq-rag/output" \
+"/home/carson/research_projects/rq-rag/output/dev_1" \
 --ndocs \
 3 \
 --use_search_engine \
@@ -28,4 +28,5 @@ openai_embed \
 [S_Rewritten_Query] \
 [S_Decomposed_Query] \
 [S_Disambiguated_Query] \
-[A_Response]
+[A_Response] \
+--overwrite_output_dir \

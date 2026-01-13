@@ -367,14 +367,23 @@ def main():
                     row["answer"]) is str else row["answer"]
 
         if args.task in ["2wikimultihopqa", "hotpotqa", "musique"]:
-            # get the overall retrieval performance EM and f1 of differenct path
+            # get the overall retrieval performance EM and f1 of different path
             gold_support_idxs = []
+            # for index, context in enumerate(rows[0]["context"]):
+            #     if context["is_supporting"]:
+            #         gold_support_idxs.append(index)
+
+            supporting_titles = [sf[0] for sf in rows[0]["supporting_facts"]]
+
             for index, context in enumerate(rows[0]["context"]):
-                if context["is_supporting"]:
+                context_title = context[0]
+                if context_title in supporting_titles:
                     gold_support_idxs.append(index)
+
             if args.search_engine_type != "elastic_search":
                 # for retrieve from candidates setting, we can calc retrieval performance
                 for path in meta_results[0]:
+                    print('\n', path, '\n')
                     predicted_support_idxs = path['retrieved_index']
                     cur_f1, cur_em  = calculate_retrieval_em_f1(predicted_support_idxs, gold_support_idxs)
                     path["retrieval_performance"] = [cur_f1, cur_em]
@@ -421,14 +430,14 @@ def main():
             with open(os.path.join(args.output_path, "tmp_results.json"), "w") as outfile:
                 json.dump(final_results, outfile)
 
-    # final_results = {"all_preds": all_preds, "prompts": prompts, "metric_results": metric_results, "all_results": all_results,
-    #                  "golds": golds,  "metric":  args.metric, "metric_mean": np.mean(metric_results),
-    #                  }
-    # with open(os.path.join(args.output_path, "final_results.json"), "w") as outfile:
-    #     json.dump(final_results, outfile)
+    final_results = {"all_preds": all_preds, "prompts": prompts, "metric_results": metric_results, "all_results": all_results,
+                     "golds": golds,  "metric":  args.metric, "metric_mean": np.mean(metric_results),
+                     }
+    with open(os.path.join(args.output_path, "final_results.json"), "w") as outfile:
+        json.dump(final_results, outfile)
 
-    # print("Final result: {0}".format(np.mean(metric_results)))
-    # print("Retrieval Frequencies: {0}".format(count / len(final_results["all_preds"])))
+    print("Final result: {0}".format(np.mean(metric_results)))
+    print("Retrieval Frequencies: {0}".format(count / len(final_results["all_preds"])))
 
 
 if __name__ == "__main__":
